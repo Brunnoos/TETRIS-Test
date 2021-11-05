@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PlayfieldGizmos : MonoBehaviour
 {
-    [SerializeField] private CurrentSide directionToDraw;
+    [SerializeField] private PoleDirection directionToDraw;
     [SerializeField] private Transform startPoint;
     [SerializeField] private float length;
 
@@ -15,8 +15,8 @@ public class PlayfieldGizmos : MonoBehaviour
                 
         switch (directionToDraw)
         {
-            case CurrentSide.Right:
-            case CurrentSide.Left:
+            case PoleDirection.East:
+            case PoleDirection.West:
                 for (int i = 1; i <= transform.localScale.y; i++)
                 {
                     Vector3 startPosition;
@@ -30,8 +30,8 @@ public class PlayfieldGizmos : MonoBehaviour
 
                 break;
 
-            case CurrentSide.Top:
-            case CurrentSide.Bottom:
+            case PoleDirection.North:
+            case PoleDirection.South:
                 for (int i = 1; i <= transform.localScale.x; i++)
                 {
                     Vector3 startPosition;

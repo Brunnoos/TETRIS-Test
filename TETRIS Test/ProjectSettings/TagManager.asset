@@ -8,6 +8,7 @@ TagManager:
   - LeftBorder
   - RightBorder
   - SingleBlock
+  - InnerCollider
   layers:
   - Default
   - TransparentFX
@@ -15,8 +16,8 @@ TagManager:
   - 
   - Water
   - UI
-  - 
-  - 
+  - InnerCollider
+  - ExternalCollider
   - 
   - 
   - 

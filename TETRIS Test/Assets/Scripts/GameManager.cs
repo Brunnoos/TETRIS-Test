@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void LateUpdate()
     {
         m_timer += Time.deltaTime;
 
@@ -66,8 +66,6 @@ public class GameManager : MonoBehaviour
 
             if (m_currentTetrimino != null)
                 m_currentTetrimino.OnAutoMoveDown();
-
-            leftBorderChecker.CheckLines();
         }
     }
 
@@ -80,6 +78,8 @@ public class GameManager : MonoBehaviour
 
     public void OnChooseTetriminoToSpawn()
     {
+        leftBorderChecker.CheckLines();
+
         int randomNumber = Random.Range(0, prefabTetriminos.Count);
 
         OnSpawnTetrimino(prefabTetriminos[randomNumber]);

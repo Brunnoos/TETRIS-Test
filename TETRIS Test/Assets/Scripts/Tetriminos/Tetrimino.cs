@@ -16,6 +16,12 @@ public class Tetrimino : MonoBehaviour
     private bool m_canMoveLeft = true;
     private bool m_canMoveRight = true;
 
+    private int m_lastRotationDirection = 0;
+
+    private bool m_hasHandledThisFrame = false;
+    private Collider m_colliderWithThisFrame = null;
+    private bool m_rotatedThisFrame = false;
+
     private bool _isDone = false;
 
     #region Sets & Gets 
@@ -36,6 +42,20 @@ public class Tetrimino : MonoBehaviour
         //SetupBlocks();
     }
 
+    public void LateUpdate()
+    {        
+        if (!m_hasHandledThisFrame)
+        {
+            CheckForCollisions();
+
+            CheckForStop();
+        }        
+        m_rotatedThisFrame = false;
+
+        if (m_hasHandledThisFrame == true)
+            m_hasHandledThisFrame = false;
+    }
+
     #region Blocks
 
     public void SetupBlocks()
@@ -49,7 +69,7 @@ public class Tetrimino : MonoBehaviour
 
         foreach(TetriminoBlock block in blocks)
         {
-            block.OnSetup(this, blockColliders);
+            block.OnSetup(this, blockColliders, OnRotateBack);
         }
     }
 
@@ -66,6 +86,7 @@ public class Tetrimino : MonoBehaviour
 
     public void HasHitBottomBorder()
     {
+        CheckForCollisions();
         m_canMoveDown = false;
 
         if (!_isDone)
@@ -73,6 +94,133 @@ public class Tetrimino : MonoBehaviour
             _isDone = true;
             GameManager.Instance.OnChooseTetriminoToSpawn();
         }
+    }
+
+    public void CheckForStop()
+    {
+        foreach (TetriminoBlock block in blocks)
+        {
+            if (block.GetCantMoveDown)
+            {
+                HasHitBottomBorder();
+                break;
+            }
+        }
+    }
+
+    public void CheckForCollisions()
+    {
+        if (!_isDone)
+        {
+            TetriminoBlock blockWithCollision = null;
+
+            foreach (TetriminoBlock block in blocks)
+            {
+                if (block.InnerCollider.CollidedWith != null)
+                {
+                    blockWithCollision = block;
+                    break;
+                }
+            }
+
+            if (blockWithCollision != null)
+            {
+                HandleCollision(blockWithCollision, blockWithCollision.InnerCollider.CollidedWith);
+                m_hasHandledThisFrame = true;
+                //CheckForCollisions();
+            }
+        }        
+    }
+
+    public void HandleCollision(TetriminoBlock source, Collider collider)
+    {        
+        switch(collider.tag)
+        {
+            case "InnerCollider":
+                {                    
+                    //// This collision has been made through a Rotation
+                    bool canMoveLeft = true;
+                    bool canMoveRight = true;
+
+                    foreach (TetriminoBlock child in blocks)
+                    {
+                        if (child.CheckDirection(Vector3.right) != null)
+                            canMoveRight = false;
+
+                        if (child.CheckDirection(Vector3.left) != null)
+                            canMoveLeft = false;
+                    }
+
+                    if (!canMoveLeft && !canMoveRight)
+                    {
+                        OnRotateBack();
+                    }
+                    else if (canMoveLeft)
+                    {
+                        OnMoveLeft(true);
+                    }
+                    else if (canMoveRight)
+                    {
+                        OnMoveRight(true);
+                    }
+
+                    break;
+                }
+
+            case "LeftBorder":
+                {
+                    bool canMove = true;
+
+                    foreach (TetriminoBlock child in blocks)
+                    {
+                        if (child.CheckDirection(Vector3.right) != null)
+                        {
+                            canMove = false;
+                        }
+                    }
+
+                    if (!canMove)
+                    {
+                        OnRotateBack();
+                    }
+                    else
+                    {
+                        OnMoveRight(true);
+                    }
+
+                    break;
+                }                    
+
+            case "RightBorder":
+                {
+                    bool canMove = true;
+
+                    foreach (TetriminoBlock child in blocks)
+                    {
+                        if (child.CheckDirection(Vector3.left) != null)
+                        {
+                            canMove = false;
+                        }
+                    }
+
+                    if (!canMove)
+                    {
+                        OnRotateBack();
+                    }
+                    else
+                    {
+                        OnMoveLeft(true);
+                    }
+
+                    break;
+                }
+
+            case "BottomBorder":
+                OnMoveUp();
+                break;
+                    
+        } 
+        
     }
 
     #endregion
@@ -84,22 +232,32 @@ public class Tetrimino : MonoBehaviour
         if (m_canMoveDown)
         {
             transform.position -= new Vector3(0, 1);
+            m_rotatedThisFrame = false;
         }        
     }
 
     public void OnMoveUp()
     {
-        transform.position += new Vector3(0, 2);
+        transform.position += new Vector3(0, 1);
     }
 
     public void OnRotate(bool clockwise)
     {
-        rotationPivot.Rotate(new Vector3(0, 0, (clockwise) ? -90 : 90));
+        m_lastRotationDirection = (clockwise) ? -90 : 90;
+        rotationPivot.Rotate(new Vector3(0, 0, m_lastRotationDirection));
 
         foreach(TetriminoBlock block in blocks)
         {
-            block.OnRotateCheck();
+            block.OnRotate(clockwise);
+            //block.OnRotateCheck(OnRotateBack);
         }
+
+        CheckForCollisions();
+    }
+
+    private void OnRotateBack()
+    {
+        rotationPivot.Rotate(new Vector3(0, 0, -1 * m_lastRotationDirection));
     }
 
     public void OnMoveLeft(bool forceMove = false)
@@ -113,6 +271,8 @@ public class Tetrimino : MonoBehaviour
         if (CanMoveRight || forceMove)
             transform.position += new Vector3(1, 0);
     }
+
+
 
     #endregion
 }
