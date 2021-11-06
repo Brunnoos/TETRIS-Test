@@ -2,9 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public struct BlocksPositions
+{
+    public Transform pivotPoint;
+    public List<BlockPosition> northPosition;
+    public List<BlockPosition> eastPosition;
+    public List<BlockPosition> southPosition;
+    public List<BlockPosition> westPosition;
+}
+
 public class Tetrimino : MonoBehaviour
 {
     private enum PivotPosition { OnGridLine, InsideGrid }
+
+    [SerializeField] private PoleDirection currentDirection;
+    [SerializeField] private BlocksPositions rotationPositions;
 
     [SerializeField] private Transform rotationPivot;
     [SerializeField] private PivotPosition pivotPosition;
@@ -40,6 +53,11 @@ public class Tetrimino : MonoBehaviour
     public void Start()
     {
         //SetupBlocks();
+    }
+
+    public void Update()
+    {
+        Rotate();
     }
 
     public void LateUpdate()
@@ -227,6 +245,40 @@ public class Tetrimino : MonoBehaviour
 
     #region Movement
 
+    public void Rotate()
+    {
+        switch (currentDirection)
+        {
+            case PoleDirection.North:
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.northPosition[i].relativeIndexes);
+                }
+
+                break;
+            case PoleDirection.East:
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.eastPosition[i].relativeIndexes);
+                }
+
+                break;
+            case PoleDirection.South:
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.southPosition[i].relativeIndexes);
+                }
+
+                break;
+            case PoleDirection.West:
+                for (int i = 0; i < blocks.Count; i++)
+                {
+                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.westPosition[i].relativeIndexes);
+                }
+
+                break;
+        }
+    }
     public void OnAutoMoveDown()
     {
         if (m_canMoveDown)

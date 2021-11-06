@@ -5,6 +5,13 @@ using UnityEngine;
 
 public enum PoleDirection { North, East, South, West }
 
+[System.Serializable]
+public struct BlockPosition
+{
+    public TetriminoBlock block;
+    public Vector2 relativeIndexes;
+}
+
 [RequireComponent(typeof(Collider))]
 public class TetriminoBlock : MonoBehaviour
 {
@@ -64,6 +71,11 @@ public class TetriminoBlock : MonoBehaviour
         //    m_parentTetrimino.HandleCollision(this, m_collidedWith);
         //    m_collidedWith = null;
         //}
+    }
+
+    public void OnPosition(Vector3 pivot, Vector2 difference)
+    {
+        transform.position = pivot + (Vector3)difference;
     }
 
     public void OnSetup(Tetrimino parent, List<Collider> colliders, System.Action rotateBack)

@@ -52,7 +52,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        OnStartGame();
+        //OnStartGame();
     }
 
     // Update is called once per frame
