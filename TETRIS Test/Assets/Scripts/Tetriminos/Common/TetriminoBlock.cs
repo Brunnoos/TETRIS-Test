@@ -21,8 +21,9 @@ public class TetriminoBlock : MonoBehaviour
     #region Internal
 
     // For All Blocks
+    protected Vector2 m_gridPosition;
+
     private Tetrimino m_parent;
-    private Vector2 m_gridPosition;
     private Vector2 m_previousGridPosition;
     private TetriminoBlock m_pivotBlock = null;
 

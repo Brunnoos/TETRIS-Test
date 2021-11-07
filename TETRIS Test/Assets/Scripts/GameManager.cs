@@ -22,6 +22,9 @@ public class GameManager : MonoBehaviour
     [Header("Playfield")]
     [SerializeField] private Playfield playfield;
 
+    [Header("Ghost")]
+    [SerializeField] private GhostTetrimino ghostTetrimino;
+
     #endregion
 
     #region Internal
@@ -95,6 +98,7 @@ public class GameManager : MonoBehaviour
 
     public void OnTetriminoDone()
     {
+        HideGhost();
         OnCheckPlayfieldLines();
     }
 
@@ -126,6 +130,8 @@ public class GameManager : MonoBehaviour
             GameObject newTetrimino = Instantiate(tetrimino, tetriminosHolder);
             m_currentTetrimino = newTetrimino.GetComponent<Tetrimino>();
             m_currentTetrimino.Initialize(playfield.SpawnPoint.position);
+
+            SetupGhost();
         }
     }
 
@@ -190,6 +196,30 @@ public class GameManager : MonoBehaviour
     private void OnDisable()
     {
         controller.Disable();
+    }
+
+    #endregion
+
+    #region Ghost Controller
+        
+    public void SetupGhost()
+    {
+        ghostTetrimino.SetupGhostTarget(m_currentTetrimino, m_currentTetrimino.GetAllBlocks);
+        ShowGhost();
+        OnUpdateGhost();
+    }
+
+    public void OnUpdateGhost()
+    {
+        ghostTetrimino.UpdateGhost();
+    }
+    public void ShowGhost()
+    {
+        ghostTetrimino.ShowGhost();
+    }
+    public void HideGhost()
+    {
+        ghostTetrimino.HideGhost();
     }
 
     #endregion

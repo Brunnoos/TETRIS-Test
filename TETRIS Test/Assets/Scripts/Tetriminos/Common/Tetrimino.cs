@@ -99,6 +99,8 @@ public class Tetrimino : MonoBehaviour
 
                 m_previousDirection = currentDirection;
                 OnUpdatePlayfield();
+
+                GameManager.Instance.OnUpdateGhost();
             }  
             // If not possible, try to move piece after the desired rotation
             else
@@ -121,6 +123,8 @@ public class Tetrimino : MonoBehaviour
                     OnUpdatePlayfield(true);
 
                     Move(choosenMove);
+
+                    GameManager.Instance.OnUpdateGhost();
                 }
                 else 
                 {
@@ -149,6 +153,9 @@ public class Tetrimino : MonoBehaviour
             }
 
             OnUpdatePlayfield();
+
+            if (direction != Vector2.down)
+                GameManager.Instance.OnUpdateGhost();
         } 
         else
         {
