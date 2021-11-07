@@ -20,7 +20,7 @@ public class GameManager : MonoBehaviour
     [SerializeField] private Transform tetriminosHolder;
 
     [Header("Playfield")]
-    [SerializeField] private GridChecker leftBorderChecker;
+    [SerializeField] private Playfield playfield;
 
     #endregion
 
@@ -29,9 +29,17 @@ public class GameManager : MonoBehaviour
     private PlayerControls controller;
 
     private float m_timer = 0;
-    private float m_tetriminoStepDelay = 0.5f; // Default value
+    private float m_tetriminoStepDelay = 1f; // Default value
+    private float m_timerSpeed = 1f;
 
     private Tetrimino m_currentTetrimino = null;
+    private bool m_canSpawn = false;
+
+    #endregion
+
+    #region Sets & Gets
+
+    public Playfield GetPlayfield { get => playfield; }
 
     #endregion
 
@@ -52,20 +60,29 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
-        //OnStartGame();
+        OnStartGame();
+    }
+
+    private void Update()
+    {
+        if (m_canSpawn)
+        {
+            OnChooseTetriminoToSpawn();
+            m_canSpawn = false;
+        }
     }
 
     // Update is called once per frame
     void LateUpdate()
     {
-        m_timer += Time.deltaTime;
+        m_timer += Time.deltaTime * m_timerSpeed;
 
         if (m_timer >= m_tetriminoStepDelay)
         {
             m_timer = 0;
 
             if (m_currentTetrimino != null)
-                m_currentTetrimino.OnAutoMoveDown();
+                m_currentTetrimino.Move(Vector2.down);
         }
     }
 
@@ -76,10 +93,27 @@ public class GameManager : MonoBehaviour
         OnChooseTetriminoToSpawn();
     }
 
+    public void OnTetriminoDone()
+    {
+        OnCheckPlayfieldLines();
+    }
+
+    public void OnCheckPlayfieldLines()
+    {
+        int lineToDelete = playfield.OnCheckLines();
+        if (lineToDelete == -1)
+        {
+            m_canSpawn = true;
+        }
+        else
+        {
+            playfield.DeleteLine(lineToDelete);
+            OnCheckPlayfieldLines();
+        }
+    }
+
     public void OnChooseTetriminoToSpawn()
     {
-        leftBorderChecker.CheckLines();
-
         int randomNumber = Random.Range(0, prefabTetriminos.Count);
 
         OnSpawnTetrimino(prefabTetriminos[randomNumber]);
@@ -91,6 +125,7 @@ public class GameManager : MonoBehaviour
         {
             GameObject newTetrimino = Instantiate(tetrimino, tetriminosHolder);
             m_currentTetrimino = newTetrimino.GetComponent<Tetrimino>();
+            m_currentTetrimino.Initialize(playfield.SpawnPoint.position);
         }
     }
 
@@ -102,33 +137,44 @@ public class GameManager : MonoBehaviour
     {
         controller = new PlayerControls();
         controller.Tetrimino.RotateClockwise.performed += ctx => RotateTetriminoClockwise();
+
         controller.Tetrimino.MoveLeft.performed += ctx => MoveLeft();
         controller.Tetrimino.MoveRight.performed += ctx => MoveRight();
-        controller.Tetrimino.SoftDrop.performed += ctx => SoftDrop();
+
+        controller.Tetrimino.SoftDrop.performed += ctx => SoftDrop(false);
+        controller.Tetrimino.SoftDrop.canceled += ctx => SoftDrop(true);
+
         controller.Tetrimino.HardDrop.performed += ctx => HardDrop();
     }
 
     public void RotateTetriminoClockwise()
     {
         if (m_currentTetrimino != null)
-            m_currentTetrimino.OnRotate(true);
+            m_currentTetrimino.ChangeDirection();
     }
 
     public void MoveLeft()
     {
         if (m_currentTetrimino != null)
-            m_currentTetrimino.OnMoveLeft();
+            m_currentTetrimino.Move(Vector2.left);
     }
 
     public void MoveRight()
     {
         if (m_currentTetrimino != null)
-            m_currentTetrimino.OnMoveRight();
+            m_currentTetrimino.Move(Vector2.right);
     }
 
-    public void SoftDrop()
+    public void SoftDrop(bool stop)
     {
-
+        if (!stop)
+        {
+            m_timerSpeed = 20f;
+        }
+        else
+        {
+            m_timerSpeed = 1f;
+        }
     }
 
     public void HardDrop()

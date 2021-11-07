@@ -2,329 +2,288 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
-public struct BlocksPositions
-{
-    public Transform pivotPoint;
-    public List<BlockPosition> northPosition;
-    public List<BlockPosition> eastPosition;
-    public List<BlockPosition> southPosition;
-    public List<BlockPosition> westPosition;
-}
+public enum PoleDirection { North, East, South, West }
 
 public class Tetrimino : MonoBehaviour
 {
-    private enum PivotPosition { OnGridLine, InsideGrid }
+    #region Inspector
 
+    [SerializeField] private Vector2 spawnPointModifier;
+    [SerializeField] private Vector2 gridStart;
     [SerializeField] private PoleDirection currentDirection;
-    [SerializeField] private BlocksPositions rotationPositions;
-
-    [SerializeField] private Transform rotationPivot;
-    [SerializeField] private PivotPosition pivotPosition;
-    [SerializeField] private List<TetriminoBlock> blocks;
-
-    private List<TetriminoBlock> m_blocksToRaycast = new List<TetriminoBlock>();
-
-    private bool m_canMoveDown = true;
-    private bool m_canMoveLeft = true;
-    private bool m_canMoveRight = true;
-
-    private int m_lastRotationDirection = 0;
-
-    private bool m_hasHandledThisFrame = false;
-    private Collider m_colliderWithThisFrame = null;
-    private bool m_rotatedThisFrame = false;
-
-    private bool _isDone = false;
-
-    #region Sets & Gets 
-
-    public bool CanMoveDown { get => m_canMoveDown; set => m_canMoveDown = value; }
-    public bool CanMoveLeft { get => m_canMoveLeft; set => m_canMoveLeft = value; }
-    public bool CanMoveRight { get => m_canMoveRight; set => m_canMoveRight = value; }
+    [SerializeField] private TetriminoBlock pivotBlock;
+    [SerializeField] private List<TetriminoBlock> remainingBlocks;
 
     #endregion
 
-    public void Awake()
-    {
-        SetupBlocks();
-    }
+    #region Internal
 
-    public void Start()
-    {
-        //SetupBlocks();
-    }
+    private bool m_isDone = false;
+
+    private List<TetriminoBlock> m_allBlocks = new List<TetriminoBlock>();
+
+    private PoleDirection m_previousDirection = PoleDirection.North;
+
+    #endregion
+
+    #region Sets & Gets 
+
+    public TetriminoBlock GetPivotBlock { get => pivotBlock; }
+    public List<TetriminoBlock> GetRemainingBlocks { get => remainingBlocks; }
+    public List<TetriminoBlock> GetAllBlocks { get => m_allBlocks; }
+
+    #endregion
+
+    #region UNITY
 
     public void Update()
     {
-        Rotate();
+        if (!m_isDone)
+            Rotate();
     }
 
-    public void LateUpdate()
-    {        
-        if (!m_hasHandledThisFrame)
-        {
-            CheckForCollisions();
+    #endregion  
 
-            CheckForStop();
-        }        
-        m_rotatedThisFrame = false;
+    #region Setup
 
-        if (m_hasHandledThisFrame == true)
-            m_hasHandledThisFrame = false;
-    }
-
-    #region Blocks
-
-    public void SetupBlocks()
+    public void Initialize(Vector3 startPoint)
     {
-        List<Collider> blockColliders = new List<Collider>();
+        transform.position = startPoint + (Vector3)spawnPointModifier;
+        OnSetupBlocks();
+        OnUpdatePlayfield();
+    }
 
-        foreach(TetriminoBlock block in blocks)
-        {
-            blockColliders.Add(block.GetComponent<Collider>());
-        }
+    public void OnSetupBlocks()
+    {
+        pivotBlock.OnPivotSetup(gridStart, this);
+        m_allBlocks.Add(pivotBlock);
 
-        foreach(TetriminoBlock block in blocks)
+        foreach (TetriminoBlock block in remainingBlocks)
         {
-            block.OnSetup(this, blockColliders, OnRotateBack);
+            block.OnSetup(gridStart, pivotBlock, this);
+            m_allBlocks.Add(block);
         }
     }
 
-    public void HasHitAnotherBlock()
+    public void OnUpdatePlayfield(bool blockNewPosition = false)
     {
-        m_canMoveDown = false;
-
-        if (!_isDone)
-        {
-            _isDone = true;
-            GameManager.Instance.OnChooseTetriminoToSpawn();
-        }        
-    }
-
-    public void HasHitBottomBorder()
-    {
-        CheckForCollisions();
-        m_canMoveDown = false;
-
-        if (!_isDone)
-        {
-            _isDone = true;
-            GameManager.Instance.OnChooseTetriminoToSpawn();
-        }
-    }
-
-    public void CheckForStop()
-    {
-        foreach (TetriminoBlock block in blocks)
-        {
-            if (block.GetCantMoveDown)
-            {
-                HasHitBottomBorder();
-                break;
-            }
-        }
-    }
-
-    public void CheckForCollisions()
-    {
-        if (!_isDone)
-        {
-            TetriminoBlock blockWithCollision = null;
-
-            foreach (TetriminoBlock block in blocks)
-            {
-                if (block.InnerCollider.CollidedWith != null)
-                {
-                    blockWithCollision = block;
-                    break;
-                }
-            }
-
-            if (blockWithCollision != null)
-            {
-                HandleCollision(blockWithCollision, blockWithCollision.InnerCollider.CollidedWith);
-                m_hasHandledThisFrame = true;
-                //CheckForCollisions();
-            }
-        }        
-    }
-
-    public void HandleCollision(TetriminoBlock source, Collider collider)
-    {        
-        switch(collider.tag)
-        {
-            case "InnerCollider":
-                {                    
-                    //// This collision has been made through a Rotation
-                    bool canMoveLeft = true;
-                    bool canMoveRight = true;
-
-                    foreach (TetriminoBlock child in blocks)
-                    {
-                        if (child.CheckDirection(Vector3.right) != null)
-                            canMoveRight = false;
-
-                        if (child.CheckDirection(Vector3.left) != null)
-                            canMoveLeft = false;
-                    }
-
-                    if (!canMoveLeft && !canMoveRight)
-                    {
-                        OnRotateBack();
-                    }
-                    else if (canMoveLeft)
-                    {
-                        OnMoveLeft(true);
-                    }
-                    else if (canMoveRight)
-                    {
-                        OnMoveRight(true);
-                    }
-
-                    break;
-                }
-
-            case "LeftBorder":
-                {
-                    bool canMove = true;
-
-                    foreach (TetriminoBlock child in blocks)
-                    {
-                        if (child.CheckDirection(Vector3.right) != null)
-                        {
-                            canMove = false;
-                        }
-                    }
-
-                    if (!canMove)
-                    {
-                        OnRotateBack();
-                    }
-                    else
-                    {
-                        OnMoveRight(true);
-                    }
-
-                    break;
-                }                    
-
-            case "RightBorder":
-                {
-                    bool canMove = true;
-
-                    foreach (TetriminoBlock child in blocks)
-                    {
-                        if (child.CheckDirection(Vector3.left) != null)
-                        {
-                            canMove = false;
-                        }
-                    }
-
-                    if (!canMove)
-                    {
-                        OnRotateBack();
-                    }
-                    else
-                    {
-                        OnMoveLeft(true);
-                    }
-
-                    break;
-                }
-
-            case "BottomBorder":
-                OnMoveUp();
-                break;
-                    
-        } 
-        
+        GameManager.Instance.GetPlayfield.OnTetriminoMoved(m_allBlocks, blockNewPosition);
     }
 
     #endregion
 
     #region Movement
 
-    public void Rotate()
+    public void ChangeDirection(bool clockwise = true)
     {
-        switch (currentDirection)
-        {
-            case PoleDirection.North:
-                for (int i = 0; i < blocks.Count; i++)
-                {
-                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.northPosition[i].relativeIndexes);
-                }
-
-                break;
-            case PoleDirection.East:
-                for (int i = 0; i < blocks.Count; i++)
-                {
-                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.eastPosition[i].relativeIndexes);
-                }
-
-                break;
-            case PoleDirection.South:
-                for (int i = 0; i < blocks.Count; i++)
-                {
-                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.southPosition[i].relativeIndexes);
-                }
-
-                break;
-            case PoleDirection.West:
-                for (int i = 0; i < blocks.Count; i++)
-                {
-                    blocks[i].OnPosition(rotationPositions.pivotPoint.position, rotationPositions.westPosition[i].relativeIndexes);
-                }
-
-                break;
-        }
+        if (clockwise)
+            currentDirection = (currentDirection == PoleDirection.West) ? PoleDirection.North : (PoleDirection)((int)currentDirection + 1);
+        else
+            currentDirection = (currentDirection == PoleDirection.North) ? PoleDirection.West : (PoleDirection)((int)currentDirection - 1);
     }
-    public void OnAutoMoveDown()
-    {
-        if (m_canMoveDown)
+
+    private void Rotate()
+    { 
+        // If a new Rotation is desired
+        if (m_previousDirection != currentDirection)
         {
-            transform.position -= new Vector3(0, 1);
-            m_rotatedThisFrame = false;
+            // First, try to rotate normally
+            if (TryRotate((int)currentDirection))
+            {
+                pivotBlock.OnRotate((int)currentDirection);
+
+                foreach (TetriminoBlock block in remainingBlocks)
+                {
+                    block.OnRotate((int)currentDirection);
+                }
+
+                m_previousDirection = currentDirection;
+                OnUpdatePlayfield();
+            }  
+            // If not possible, try to move piece after the desired rotation
+            else
+            {
+                Vector2 possibleRightMove = TryMoveAfterRotation(Vector2.right);
+                Vector2 possibleLeftMove = TryMoveAfterRotation(Vector2.left);
+
+                Vector2 choosenMove = GetPriorityMove(possibleLeftMove, possibleRightMove);
+
+                if (choosenMove != Vector2.zero)
+                {
+                    pivotBlock.OnRotate((int)currentDirection);
+
+                    foreach (TetriminoBlock block in remainingBlocks)
+                    {
+                        block.OnRotate((int)currentDirection);
+                    }
+
+                    m_previousDirection = currentDirection;
+                    OnUpdatePlayfield(true);
+
+                    Move(choosenMove);
+                }
+                else 
+                {
+                    // If nothing is possible, no rotation is done
+                    currentDirection = m_previousDirection;
+                }
+
+            }
         }        
     }
 
-    public void OnMoveUp()
+    public void Move(Vector2 direction)
     {
-        transform.position += new Vector3(0, 1);
+        bool test = TryMove(direction);
+
+        // If movement is possible after check, do it
+        if (test)
+        {
+            transform.position += (Vector3)direction;
+
+            pivotBlock.OnMove(direction);
+
+            foreach (TetriminoBlock block in remainingBlocks)
+            {
+                block.OnMove(direction);
+            }
+
+            OnUpdatePlayfield();
+        } 
+        else
+        {
+            // If a Down movement is not possible, nothing should be done and the piece is locked
+            if (!m_isDone && direction == Vector2.down)
+            {
+                // Reached Bottom
+                m_isDone = true;
+                GameManager.Instance.OnTetriminoDone();
+            }
+        }
     }
 
-    public void OnRotate(bool clockwise)
-    {
-        m_lastRotationDirection = (clockwise) ? -90 : 90;
-        rotationPivot.Rotate(new Vector3(0, 0, m_lastRotationDirection));
+    #endregion
 
-        foreach(TetriminoBlock block in blocks)
+    #region Collision Handle
+
+    private bool TryRotate(int direction)
+    {
+        bool success = true;
+
+        foreach(TetriminoBlock block in m_allBlocks)
         {
-            block.OnRotate(clockwise);
-            //block.OnRotateCheck(OnRotateBack);
+            if (!block.TryRotate(direction, m_allBlocks))
+            {
+                success = false;
+                break;
+            }            
         }
 
-        CheckForCollisions();
+        return success;
     }
 
-    private void OnRotateBack()
+    private bool TryMove(Vector2 direction)
     {
-        rotationPivot.Rotate(new Vector3(0, 0, -1 * m_lastRotationDirection));
+        bool success = true;
+
+        foreach (TetriminoBlock block in m_allBlocks)
+        {
+            if (!block.TryMove(direction, m_allBlocks))
+            {
+                success = false;
+                break;
+            }
+        }
+
+        return success;
     }
 
-    public void OnMoveLeft(bool forceMove = false)
+    private Vector2 TryMoveAfterRotation(Vector2 direction)
     {
-        if (CanMoveLeft || forceMove)
-            transform.position -= new Vector3(1, 0);
+        Vector2 currentDirectionTested = direction;
+        int maxLength = (direction == Vector2.up) ? GetVerticalLength(true) / 2 : GetHorizontalLength(true) / 2;
+
+        for (int i = 1; i <= maxLength; i++)
+        {
+            bool success = true;
+
+            currentDirectionTested *= i;
+
+            foreach (TetriminoBlock block in m_allBlocks)
+            {
+                if (!block.TryMove(direction, m_allBlocks, true))
+                {
+                    success = false;
+                    break;
+                }
+            }
+
+            if (success)
+            {
+                return currentDirectionTested;
+            }
+        }
+
+        return Vector2.zero;
     }
 
-    public void OnMoveRight(bool forceMove = false)
+    private int GetHorizontalLength(bool tempPosition = false)
     {
-        if (CanMoveRight || forceMove)
-            transform.position += new Vector3(1, 0);
+        List<int> xCoordFound = new List<int>();
+
+        foreach (TetriminoBlock block in m_allBlocks)
+        {
+            int foundCoord = (!tempPosition) ? (int)block.GridPosition.x : (int)block.GetTempGridPosition.x;
+
+            if (!xCoordFound.Contains(foundCoord))
+                xCoordFound.Add(foundCoord);
+        }
+
+        return xCoordFound.Count;
     }
 
+    private int GetVerticalLength(bool tempPosition = false)
+    {
+        List<int> yCoordFound = new List<int>();
 
+        foreach (TetriminoBlock block in m_allBlocks)
+        {
+            int foundCoord = (!tempPosition) ? (int)block.GridPosition.y : (int)block.GetTempGridPosition.y;
+
+            if (!yCoordFound.Contains(foundCoord))
+                yCoordFound.Add(foundCoord);
+        }
+
+        return yCoordFound.Count;
+    }
+
+    private Vector2 GetPriorityMove(Vector2 left, Vector2 right)
+    {
+        // Right Move is top priority for a clockwise movement
+        if (right != Vector2.zero)
+            return right;
+
+        if (left != Vector2.zero)
+            return left;
+
+        return Vector2.zero;
+    }
+
+    #endregion
+
+    #region
+
+    public void OnBlockDeleted(TetriminoBlock block)
+    {
+        if (m_allBlocks.Contains(block))
+            m_allBlocks.Remove(block);
+
+        if (remainingBlocks.Contains(block))
+            remainingBlocks.Remove(block);
+
+        if (pivotBlock == block)
+            pivotBlock = null;
+    }
 
     #endregion
 }

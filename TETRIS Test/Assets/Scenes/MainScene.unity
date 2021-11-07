@@ -650,10 +650,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   prefabTetriminos:
+  - {fileID: 3999920313588069621, guid: 4d2c7732f1371cd4ea9d726308952e52, type: 3}
   - {fileID: 3999920313588069621, guid: d52f9f28d8a06a84a9354c41a97a8ea0, type: 3}
+  - {fileID: 3999920313588069621, guid: f91fea6be128fe74ebc5abdfcc0ec69f, type: 3}
+  - {fileID: 3999920313588069621, guid: 1a0efcee0afc1384089f8f6cc9bc251c, type: 3}
   - {fileID: 3999920313588069621, guid: 39a9cea400b27d444b31bd26b7ad6fae, type: 3}
+  - {fileID: 3999920313588069621, guid: 46eb93d40d92d0643913b3263d950c59, type: 3}
+  - {fileID: 3999920313588069621, guid: 4bac8773279e3da4fb3daaacd376ae42, type: 3}
   tetriminosHolder: {fileID: 1393547374}
-  leftBorderChecker: {fileID: 1762468555}
+  playfield: {fileID: 1521825609}
 --- !u!4 &762754674
 Transform:
   m_ObjectHideFlags: 0
@@ -949,7 +954,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   directionToDraw: 2
   startPoint: {fileID: 1276706565}
-  length: 20
+  length: 20.9
 --- !u!54 &1114203649
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -1260,12 +1265,12 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1341545315}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 19.5, z: 0}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -0.5, y: 19.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
-  m_Father: {fileID: 1521825608}
-  m_RootOrder: 4
+  m_Father: {fileID: 1393547374}
+  m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1393547373
 GameObject:
@@ -1293,7 +1298,8 @@ Transform:
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
-  m_Children: []
+  m_Children:
+  - {fileID: 1341545316}
   m_Father: {fileID: 0}
   m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1372,7 +1378,6 @@ Transform:
   - {fileID: 1762468550}
   - {fileID: 1141694854}
   - {fileID: 2144724002}
-  - {fileID: 1341545316}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1388,6 +1393,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a942a48c74d978644983fce7c5598c32, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  gridXSize: 10
+  gridYSize: 20
+  spawnPoint: {fileID: 1341545316}
+  lineCheckers: []
+  gridGizmosModifier: {x: -4.5, y: 1.5, z: 0.36}
 --- !u!1 &1704705840
 GameObject:
   m_ObjectHideFlags: 0
@@ -1561,7 +1571,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f663a1414e76ade4991e3e2ff4e183ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  directionToDraw: 0
+  directionToDraw: 1
   startPoint: {fileID: 707091967}
   length: 10.94
 --- !u!114 &1762468555
@@ -1810,7 +1820,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2144724001}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 20.5, z: 0}
+  m_LocalPosition: {x: 0, y: 21.5, z: 0}
   m_LocalScale: {x: 12, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1521825608}
