@@ -13,6 +13,7 @@ public class Tetrimino : MonoBehaviour
     [SerializeField] private PoleDirection currentDirection;
     [SerializeField] private TetriminoBlock pivotBlock;
     [SerializeField] private List<TetriminoBlock> remainingBlocks;
+    [SerializeField] private float movementDelay;
 
     #endregion
 
@@ -23,6 +24,9 @@ public class Tetrimino : MonoBehaviour
     private List<TetriminoBlock> m_allBlocks = new List<TetriminoBlock>();
 
     private PoleDirection m_previousDirection = PoleDirection.North;
+
+    private Vector2 m_movementDirection = Vector2.zero;
+    private float m_timer = 0;
 
     #endregion
 
@@ -39,7 +43,26 @@ public class Tetrimino : MonoBehaviour
     public void Update()
     {
         if (!m_isDone)
+        {
             Rotate();
+
+            if (m_movementDirection != Vector2.zero)
+            {   
+                m_timer += Time.deltaTime;
+
+                if (m_timer >= movementDelay)
+                {
+                    Move(m_movementDirection);
+                    m_timer = 0;
+                }                            
+            }
+            else
+            {
+                m_timer = 0;
+            }
+                
+        }
+            
     }
 
     #endregion  
@@ -50,7 +73,6 @@ public class Tetrimino : MonoBehaviour
     {
         transform.position = startPoint + (Vector3)spawnPointModifier;
         OnSetupBlocks();
-        OnUpdatePlayfield();
     }
 
     public void OnSetupBlocks()
@@ -82,6 +104,14 @@ public class Tetrimino : MonoBehaviour
             currentDirection = (currentDirection == PoleDirection.North) ? PoleDirection.West : (PoleDirection)((int)currentDirection - 1);
     }
 
+    public void ChangeMovement(Vector2 direction)
+    {
+        m_movementDirection = direction;
+
+        if (direction != Vector2.zero)
+            Move(m_movementDirection);
+    }
+
     private void Rotate()
     { 
         // If a new Rotation is desired
@@ -107,8 +137,9 @@ public class Tetrimino : MonoBehaviour
             {
                 Vector2 possibleRightMove = TryMoveAfterRotation(Vector2.right);
                 Vector2 possibleLeftMove = TryMoveAfterRotation(Vector2.left);
+                Vector2 possibleDownMove = TryMoveAfterRotation(Vector2.down);
 
-                Vector2 choosenMove = GetPriorityMove(possibleLeftMove, possibleRightMove);
+                Vector2 choosenMove = GetPriorityMove(possibleLeftMove, possibleRightMove, possibleDownMove);
 
                 if (choosenMove != Vector2.zero)
                 {
@@ -208,7 +239,7 @@ public class Tetrimino : MonoBehaviour
     private Vector2 TryMoveAfterRotation(Vector2 direction)
     {
         Vector2 currentDirectionTested = direction;
-        int maxLength = (direction == Vector2.up) ? GetVerticalLength(true) / 2 : GetHorizontalLength(true) / 2;
+        int maxLength = (direction == Vector2.down) ? 1 : GetHorizontalLength(true) / 2;
 
         for (int i = 1; i <= maxLength; i++)
         {
@@ -264,7 +295,7 @@ public class Tetrimino : MonoBehaviour
         return yCoordFound.Count;
     }
 
-    private Vector2 GetPriorityMove(Vector2 left, Vector2 right)
+    private Vector2 GetPriorityMove(Vector2 left, Vector2 right, Vector2 down)
     {
         // Right Move is top priority for a clockwise movement
         if (right != Vector2.zero)
@@ -272,6 +303,9 @@ public class Tetrimino : MonoBehaviour
 
         if (left != Vector2.zero)
             return left;
+
+        if (down != Vector2.zero)
+            return down;
 
         return Vector2.zero;
     }

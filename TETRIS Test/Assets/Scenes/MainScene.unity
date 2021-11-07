@@ -1296,14 +1296,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1393547373}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1341545316}
   - {fileID: 529265563390179499}
-  m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_Father: {fileID: 1521825608}
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1497216800
 GameObject:
@@ -1380,6 +1380,7 @@ Transform:
   - {fileID: 1762468550}
   - {fileID: 1141694854}
   - {fileID: 2144724002}
+  - {fileID: 1393547374}
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -1396,7 +1397,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   gridXSize: 10
-  gridYSize: 20
+  gridYSize: 22
   spawnPoint: {fileID: 1341545316}
   lineCheckers: []
   gridGizmosModifier: {x: -4.5, y: 1.5, z: 0.36}

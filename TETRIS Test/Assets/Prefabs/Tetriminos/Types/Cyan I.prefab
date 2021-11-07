@@ -55,6 +55,7 @@ MonoBehaviour:
   - {fileID: 3999920312972066804}
   - {fileID: 6179785086822366892}
   - {fileID: 6179785085256711611}
+  movementDelay: 0.2
 --- !u!1001 &3999920312929761092
 PrefabInstance:
   m_ObjectHideFlags: 0

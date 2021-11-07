@@ -27,18 +27,10 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""interactions"": """"
                 },
                 {
-                    ""name"": ""MoveLeft"",
-                    ""type"": ""Button"",
+                    ""name"": ""Move"",
+                    ""type"": ""Value"",
                     ""id"": ""367eed8d-39f4-4733-ae47-4e6d1095ad09"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """"
-                },
-                {
-                    ""name"": ""MoveRight"",
-                    ""type"": ""Button"",
-                    ""id"": ""b1a4c4d8-4e07-41e6-ad0e-66b1f96ffbca"",
-                    ""expectedControlType"": ""Button"",
+                    ""expectedControlType"": ""Vector2"",
                     ""processors"": """",
                     ""interactions"": """"
                 },
@@ -83,26 +75,59 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                     ""isPartOfComposite"": false
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""bc474a14-0e95-424b-bef6-0c918e4a16b1"",
+                    ""name"": ""2D Vector"",
+                    ""id"": ""3c9ba829-adf5-452b-9db0-b2f3f16cfc4c"",
+                    ""path"": ""2DVector"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": true,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": ""up"",
+                    ""id"": ""b6ca1995-945f-4707-8366-4c677f02f890"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""down"",
+                    ""id"": ""d5e94b3d-b536-41dd-8167-4d62053f646f"",
+                    ""path"": """",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Move"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": true
+                },
+                {
+                    ""name"": ""left"",
+                    ""id"": ""1048f94c-4ee2-4330-820a-24c30010cd49"",
                     ""path"": ""<Keyboard>/leftArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MoveLeft"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false
+                    ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""3751bc14-c885-4cfe-a95e-00a20ba270a2"",
+                    ""name"": ""right"",
+                    ""id"": ""771ea0f6-17bb-4c01-9491-b2679a6dbc40"",
                     ""path"": ""<Keyboard>/rightArrow"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""MoveRight"",
+                    ""action"": ""Move"",
                     ""isComposite"": false,
-                    ""isPartOfComposite"": false
+                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": """",
@@ -146,8 +171,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         // Tetrimino
         m_Tetrimino = asset.FindActionMap("Tetrimino", throwIfNotFound: true);
         m_Tetrimino_RotateClockwise = m_Tetrimino.FindAction("RotateClockwise", throwIfNotFound: true);
-        m_Tetrimino_MoveLeft = m_Tetrimino.FindAction("MoveLeft", throwIfNotFound: true);
-        m_Tetrimino_MoveRight = m_Tetrimino.FindAction("MoveRight", throwIfNotFound: true);
+        m_Tetrimino_Move = m_Tetrimino.FindAction("Move", throwIfNotFound: true);
         m_Tetrimino_HardDrop = m_Tetrimino.FindAction("HardDrop", throwIfNotFound: true);
         m_Tetrimino_SoftDrop = m_Tetrimino.FindAction("SoftDrop", throwIfNotFound: true);
     }
@@ -200,8 +224,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     private readonly InputActionMap m_Tetrimino;
     private ITetriminoActions m_TetriminoActionsCallbackInterface;
     private readonly InputAction m_Tetrimino_RotateClockwise;
-    private readonly InputAction m_Tetrimino_MoveLeft;
-    private readonly InputAction m_Tetrimino_MoveRight;
+    private readonly InputAction m_Tetrimino_Move;
     private readonly InputAction m_Tetrimino_HardDrop;
     private readonly InputAction m_Tetrimino_SoftDrop;
     public struct TetriminoActions
@@ -209,8 +232,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
         private @PlayerControls m_Wrapper;
         public TetriminoActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @RotateClockwise => m_Wrapper.m_Tetrimino_RotateClockwise;
-        public InputAction @MoveLeft => m_Wrapper.m_Tetrimino_MoveLeft;
-        public InputAction @MoveRight => m_Wrapper.m_Tetrimino_MoveRight;
+        public InputAction @Move => m_Wrapper.m_Tetrimino_Move;
         public InputAction @HardDrop => m_Wrapper.m_Tetrimino_HardDrop;
         public InputAction @SoftDrop => m_Wrapper.m_Tetrimino_SoftDrop;
         public InputActionMap Get() { return m_Wrapper.m_Tetrimino; }
@@ -225,12 +247,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @RotateClockwise.started -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnRotateClockwise;
                 @RotateClockwise.performed -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnRotateClockwise;
                 @RotateClockwise.canceled -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnRotateClockwise;
-                @MoveLeft.started -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveLeft;
-                @MoveLeft.performed -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveLeft;
-                @MoveLeft.canceled -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveLeft;
-                @MoveRight.started -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveRight;
-                @MoveRight.performed -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveRight;
-                @MoveRight.canceled -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMoveRight;
+                @Move.started -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMove;
+                @Move.performed -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMove;
+                @Move.canceled -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnMove;
                 @HardDrop.started -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnHardDrop;
                 @HardDrop.performed -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnHardDrop;
                 @HardDrop.canceled -= m_Wrapper.m_TetriminoActionsCallbackInterface.OnHardDrop;
@@ -244,12 +263,9 @@ public class @PlayerControls : IInputActionCollection, IDisposable
                 @RotateClockwise.started += instance.OnRotateClockwise;
                 @RotateClockwise.performed += instance.OnRotateClockwise;
                 @RotateClockwise.canceled += instance.OnRotateClockwise;
-                @MoveLeft.started += instance.OnMoveLeft;
-                @MoveLeft.performed += instance.OnMoveLeft;
-                @MoveLeft.canceled += instance.OnMoveLeft;
-                @MoveRight.started += instance.OnMoveRight;
-                @MoveRight.performed += instance.OnMoveRight;
-                @MoveRight.canceled += instance.OnMoveRight;
+                @Move.started += instance.OnMove;
+                @Move.performed += instance.OnMove;
+                @Move.canceled += instance.OnMove;
                 @HardDrop.started += instance.OnHardDrop;
                 @HardDrop.performed += instance.OnHardDrop;
                 @HardDrop.canceled += instance.OnHardDrop;
@@ -272,8 +288,7 @@ public class @PlayerControls : IInputActionCollection, IDisposable
     public interface ITetriminoActions
     {
         void OnRotateClockwise(InputAction.CallbackContext context);
-        void OnMoveLeft(InputAction.CallbackContext context);
-        void OnMoveRight(InputAction.CallbackContext context);
+        void OnMove(InputAction.CallbackContext context);
         void OnHardDrop(InputAction.CallbackContext context);
         void OnSoftDrop(InputAction.CallbackContext context);
     }

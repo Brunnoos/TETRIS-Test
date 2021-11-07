@@ -94,9 +94,31 @@ public class Playfield : MonoBehaviour
         return false;
     }
 
+    // Returns True if all Tetrimino Points in Spawn are empty and it can be spawned
+    public bool CheckTetriminoSpawnPoints(List<TetriminoBlock> blocks)
+    {
+        bool result = true;
+
+        foreach(TetriminoBlock block in blocks)
+        {
+            if (!CheckGridSlotFree(block.GridPosition, blocks))
+            {
+                result = false;
+                break;
+            }
+        }
+
+        return result;
+    }
+
     #endregion
 
     #region Line Check
+
+    public bool CheckGameOverLine()
+    {
+        return CheckIsLineOccupied(20);
+    }
 
     public int OnCheckLines(int customStartLine = 0)
     {
@@ -156,10 +178,9 @@ public class Playfield : MonoBehaviour
         {
             m_gridLayout[newPos] = newPosList[newPos];
         }
-
-
     }
 
+    // Returns True if all line is occupied by a block
     private bool CheckIsLineFull(int y)
     {
         bool full = true;
@@ -176,6 +197,25 @@ public class Playfield : MonoBehaviour
         }
 
         return full;
+    }
+
+    // Returns True if line is occupied by at least one block
+    private bool CheckIsLineOccupied(int y)
+    {
+        bool occupied = false;
+
+        for (int x = 0; x < gridXSize; x++)
+        {
+            Vector2 testPoint = new Vector2(x, y);
+
+            if (m_gridLayout[testPoint] != null)
+            {
+                occupied = true;
+                break;
+            }
+        }
+
+        return occupied;
     }
 
     #endregion
