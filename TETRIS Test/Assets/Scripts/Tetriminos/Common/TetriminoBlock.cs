@@ -62,11 +62,15 @@ public class TetriminoBlock : MonoBehaviour
     // Pivot Setup is different to keep its north position and grid point intact, as it's used for reference when rotating
     public void OnPivotSetup(Vector2 gridStartPosition, Tetrimino parent)
     {
-        m_pivotNorthPosition = transform.position;
         m_pivotNorthGridPosition = gridStartPosition;
         m_gridPosition = m_pivotNorthGridPosition;
         m_previousGridPosition = m_gridPosition;
         m_parent = parent;
+    }
+
+    public void OnUpdateNorthPosition()
+    {
+        m_pivotNorthPosition = transform.position;
     }
 
     #endregion
@@ -155,7 +159,7 @@ public class TetriminoBlock : MonoBehaviour
 
             m_tempGridPosition = tempGridPosition;
 
-            return GameManager.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
+            return GameFlow.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
         }
         else if (isPivot)
         {
@@ -163,7 +167,7 @@ public class TetriminoBlock : MonoBehaviour
 
             m_tempGridPosition = tempGridPosition;
 
-            return GameManager.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
+            return GameFlow.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
         }
 
         return false;
@@ -178,7 +182,7 @@ public class TetriminoBlock : MonoBehaviour
         if (!keepTemp)
             m_tempGridPosition = tempGridPosition; 
 
-        return GameManager.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
+        return GameFlow.Instance.GetPlayfield.CheckGridSlotFree(tempGridPosition, ignoredBlocks);
     }
 
     #endregion

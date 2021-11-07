@@ -48,6 +48,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   spawnPointModifier: {x: 0, y: 0}
+  queuePointModifier: {x: -0.5, y: 0}
   gridStart: {x: 4, y: 19}
   currentDirection: 0
   pivotBlock: {fileID: 6179785085706114486}

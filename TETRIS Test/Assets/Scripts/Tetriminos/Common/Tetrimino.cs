@@ -9,6 +9,7 @@ public class Tetrimino : MonoBehaviour
     #region Inspector
 
     [SerializeField] private Vector2 spawnPointModifier;
+    [SerializeField] private Vector2 queuePointModifier;
     [SerializeField] private Vector2 gridStart;
     [SerializeField] private PoleDirection currentDirection;
     [SerializeField] private TetriminoBlock pivotBlock;
@@ -71,7 +72,7 @@ public class Tetrimino : MonoBehaviour
 
     public void Initialize(Vector3 startPoint)
     {
-        transform.position = startPoint + (Vector3)spawnPointModifier;
+        OnMovePiece(startPoint, true);
         OnSetupBlocks();
     }
 
@@ -89,7 +90,22 @@ public class Tetrimino : MonoBehaviour
 
     public void OnUpdatePlayfield(bool blockNewPosition = false)
     {
-        GameManager.Instance.GetPlayfield.OnTetriminoMoved(m_allBlocks, blockNewPosition);
+        GameFlow.Instance.GetPlayfield.OnTetriminoMoved(m_allBlocks, blockNewPosition);
+    }
+
+    public void OnMovePiece(Vector3 position, bool queue)
+    {
+        transform.position = position + ((queue) ? (Vector3)queuePointModifier : (Vector3)spawnPointModifier);
+    }
+
+    public void OnScalePiece(Vector3 scale)
+    {
+        transform.localScale = scale;
+    }
+
+    public void OnUpdatePivotPosition()
+    {
+        pivotBlock.OnUpdateNorthPosition();
     }
 
     #endregion
@@ -130,16 +146,15 @@ public class Tetrimino : MonoBehaviour
                 m_previousDirection = currentDirection;
                 OnUpdatePlayfield();
 
-                GameManager.Instance.OnUpdateGhost();
+                GameFlow.Instance.OnUpdateGhost();
             }  
             // If not possible, try to move piece after the desired rotation
             else
             {
                 Vector2 possibleRightMove = TryMoveAfterRotation(Vector2.right);
                 Vector2 possibleLeftMove = TryMoveAfterRotation(Vector2.left);
-                Vector2 possibleDownMove = TryMoveAfterRotation(Vector2.down);
 
-                Vector2 choosenMove = GetPriorityMove(possibleLeftMove, possibleRightMove, possibleDownMove);
+                Vector2 choosenMove = GetPriorityMove(possibleLeftMove, possibleRightMove);
 
                 if (choosenMove != Vector2.zero)
                 {
@@ -155,7 +170,7 @@ public class Tetrimino : MonoBehaviour
 
                     Move(choosenMove);
 
-                    GameManager.Instance.OnUpdateGhost();
+                    GameFlow.Instance.OnUpdateGhost();
                 }
                 else 
                 {
@@ -186,7 +201,7 @@ public class Tetrimino : MonoBehaviour
             OnUpdatePlayfield();
 
             if (direction != Vector2.down)
-                GameManager.Instance.OnUpdateGhost();
+                GameFlow.Instance.OnUpdateGhost();
         } 
         else
         {
@@ -195,7 +210,7 @@ public class Tetrimino : MonoBehaviour
             {
                 // Reached Bottom
                 m_isDone = true;
-                GameManager.Instance.OnTetriminoDone();
+                GameFlow.Instance.OnTetriminoDone();
             }
         }
     }
@@ -239,7 +254,7 @@ public class Tetrimino : MonoBehaviour
     private Vector2 TryMoveAfterRotation(Vector2 direction)
     {
         Vector2 currentDirectionTested = direction;
-        int maxLength = (direction == Vector2.down) ? 1 : GetHorizontalLength(true) / 2;
+        int maxLength = GetHorizontalLength(true) / 2;
 
         for (int i = 1; i <= maxLength; i++)
         {
@@ -295,7 +310,7 @@ public class Tetrimino : MonoBehaviour
         return yCoordFound.Count;
     }
 
-    private Vector2 GetPriorityMove(Vector2 left, Vector2 right, Vector2 down)
+    private Vector2 GetPriorityMove(Vector2 left, Vector2 right)
     {
         // Right Move is top priority for a clockwise movement
         if (right != Vector2.zero)
@@ -303,9 +318,6 @@ public class Tetrimino : MonoBehaviour
 
         if (left != Vector2.zero)
             return left;
-
-        if (down != Vector2.zero)
-            return down;
 
         return Vector2.zero;
     }
@@ -324,6 +336,9 @@ public class Tetrimino : MonoBehaviour
 
         if (pivotBlock == block)
             pivotBlock = null;
+
+        if (m_allBlocks.Count <= 0)
+            Destroy(gameObject);
     }
 
     #endregion

@@ -7,7 +7,6 @@ public class Playfield : MonoBehaviour
     [SerializeField] private int gridXSize = 10;
     [SerializeField] private int gridYSize = 40;
     [SerializeField] private Transform spawnPoint;
-    [SerializeField] private List<GridLineChecker> lineCheckers;
 
     [Space(20)]
     [SerializeField] private Vector3 gridGizmosModifier;
@@ -37,6 +36,7 @@ public class Playfield : MonoBehaviour
 
     private void SetupGridLayout()
     {
+        m_gridLayout = new Dictionary<Vector2, TetriminoBlock>();
         for(int x = 0; x < gridXSize; x++)
         {
             for(int y = 0; y < gridYSize; y++)
@@ -44,6 +44,11 @@ public class Playfield : MonoBehaviour
                 m_gridLayout.Add(new Vector2(x, y), null);
             }
         }
+    }
+
+    public void ResetPlayfield()
+    {
+        SetupGridLayout();
     }
 
     public void OnTetriminoMoved(List<TetriminoBlock> blocks, bool blockNewPosition = false)
