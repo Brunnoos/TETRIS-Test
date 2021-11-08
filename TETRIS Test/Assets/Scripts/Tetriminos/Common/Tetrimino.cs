@@ -294,21 +294,6 @@ public class Tetrimino : MonoBehaviour
         return xCoordFound.Count;
     }
 
-    private int GetVerticalLength(bool tempPosition = false)
-    {
-        List<int> yCoordFound = new List<int>();
-
-        foreach (TetriminoBlock block in m_allBlocks)
-        {
-            int foundCoord = (!tempPosition) ? (int)block.GridPosition.y : (int)block.GetTempGridPosition.y;
-
-            if (!yCoordFound.Contains(foundCoord))
-                yCoordFound.Add(foundCoord);
-        }
-
-        return yCoordFound.Count;
-    }
-
     private Vector2 GetPriorityMove(Vector2 left, Vector2 right)
     {
         // Right Move is top priority for a clockwise movement
