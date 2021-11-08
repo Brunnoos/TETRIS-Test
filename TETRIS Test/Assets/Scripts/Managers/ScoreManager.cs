@@ -5,19 +5,29 @@ using TMPro;
 
 public class ScoreManager : MonoBehaviour
 {
+    #region Inspector
+
     [SerializeField] private TextMeshProUGUI scoreText;
+
+    #endregion
+
+    #region Internal
 
     private int m_currentScore = 0;
 
-    private bool m_isOn = false;
+    #endregion
 
-    public bool IsOn { get => m_isOn; set => m_isOn = value; }
+    #region UNITY
 
     // Update is called once per frame
     void Update()
     {
         scoreText.text = m_currentScore.ToString();
     }
+
+    #endregion
+
+    #region Score Management
 
     public void AddScore(int value)
     {
@@ -28,4 +38,6 @@ public class ScoreManager : MonoBehaviour
     {
         m_currentScore = 0;
     }
+
+    #endregion
 }

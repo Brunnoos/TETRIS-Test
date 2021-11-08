@@ -7,14 +7,18 @@ using UnityEngine.UI;
 [RequireComponent(typeof(Image))]
 public class UIElement : MonoBehaviour
 {
-    private Image m_image;
+    #region Internal
+
     private Button m_button;
 
     private bool m_highlighted = false;
 
+    #endregion
+
+    #region UNITY
+
     private void Start()
     {
-        m_image = GetComponent<Image>();
         m_button = GetComponent<Button>();
     }
 
@@ -25,6 +29,10 @@ public class UIElement : MonoBehaviour
         else
             transform.localScale = Vector3.one;
     }
+
+    #endregion
+
+    #region Actions
 
     public void OnConfirm()
     {
@@ -40,4 +48,6 @@ public class UIElement : MonoBehaviour
     {
         m_highlighted = false;
     }
+
+    #endregion
 }

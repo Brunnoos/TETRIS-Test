@@ -4,19 +4,13 @@ using UnityEngine;
 
 public class GhostBlock : TetriminoBlock
 {
+    #region Inspector
+
     [SerializeField] private Vector3 defaultSize;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    #endregion
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    #region Show and Hide
 
     public void Show()
     {
@@ -27,4 +21,6 @@ public class GhostBlock : TetriminoBlock
     {
         transform.localScale = Vector3.zero;
     }
+
+    #endregion
 }

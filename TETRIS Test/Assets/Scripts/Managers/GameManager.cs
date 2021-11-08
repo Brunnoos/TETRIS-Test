@@ -7,7 +7,6 @@ public enum GameState { Menu, GameFlow, GameOver }
 
 public class GameManager : MonoBehaviour
 {
-
     #region Singleton
 
     private static GameManager _instance = null;
@@ -57,6 +56,8 @@ public class GameManager : MonoBehaviour
 
     #endregion
 
+    #region UNITY
+
     private void Awake()
     {
         if (Instance != null)
@@ -84,6 +85,10 @@ public class GameManager : MonoBehaviour
     {
         StateMachine(); 
     }
+
+    #endregion
+
+    #region State Machine
 
     private void StateMachine()
     {
@@ -113,6 +118,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    #endregion
+
     #region UI
 
     private void SetCurrentUI(GameState state)
@@ -123,16 +130,22 @@ public class GameManager : MonoBehaviour
                 gameFlowUI.SetActive(false);
                 
                 menuUI.SetActive(true);
+                m_targetUI = new List<UIElement>();
                 m_targetUI = menuUIElements;
 
                 if (gameFlow.GetGameStarted)
                 {
                     continueButton.SetActive(true);
-                    m_targetUI.Insert(0, continueButton.GetComponent<UIElement>());
+
+                    if (!m_targetUI.Contains(continueButton.GetComponent<UIElement>()))
+                        m_targetUI.Insert(0, continueButton.GetComponent<UIElement>());
                 }
                 else
                 {
                     continueButton.SetActive(false);
+
+                    if (m_targetUI.Contains(continueButton.GetComponent<UIElement>()))
+                        m_targetUI.Remove(continueButton.GetComponent<UIElement>());
                 }
 
                 break;
@@ -144,6 +157,7 @@ public class GameManager : MonoBehaviour
                 gameFlowButtons.SetActive(true);
                 gameOverButtons.SetActive(false);
 
+                m_targetUI = new List<UIElement>();
                 m_targetUI = gameFlowUIElements;
 
                 break;
@@ -155,12 +169,21 @@ public class GameManager : MonoBehaviour
                 gameFlowButtons.SetActive(false);
                 gameOverButtons.SetActive(true);
 
-                m_targetUI = gameFlowUIElements;
+                m_targetUI = new List<UIElement>();
+                m_targetUI = gameOverUIElements;
+
+                if (m_targetUI.Contains(continueButton.GetComponent<UIElement>()))
+                    m_targetUI.Remove(continueButton.GetComponent<UIElement>());
 
                 break;
         }
 
         m_uiIndex = -1;
+
+        foreach(UIElement element in m_targetUI)
+        {
+            element.UnhighlightElement();
+        }
     }
 
     private void SetupControls()
@@ -170,23 +193,25 @@ public class GameManager : MonoBehaviour
         m_controller.UI.MoveUp.performed += ctx => MoveUpUI();
         m_controller.UI.MoveDown.performed += ctx => MoveDownUI();
         m_controller.UI.Confirm.performed += ctx => ConfirmButton();
-        m_controller.UI.Exit.performed += ctx => ExitButton();
     }
 
     private void MoveUpUI()
     {
-        if (m_currentState != GameState.GameFlow && m_uiIndex >= -1)
+        if (m_currentState != GameState.GameFlow && m_uiIndex == -1)
         {
-            if (m_uiIndex > 0)
-            {
-                m_targetUI[m_uiIndex].UnhighlightElement();
-                m_uiIndex--;
-            }
-            else
-            {
-                m_uiIndex = 0;
-            }               
+            m_uiIndex = 0; 
             m_targetUI[m_uiIndex].HighlightElement();
+            AudioManager.Instance.PlayMenuFlow();
+            return;
+        }           
+
+        if (m_currentState != GameState.GameFlow && m_uiIndex > 0)
+        {            
+            m_targetUI[m_uiIndex].UnhighlightElement();
+            m_uiIndex--;
+            
+            m_targetUI[m_uiIndex].HighlightElement();
+            AudioManager.Instance.PlayMenuFlow();
         }            
     }
 
@@ -199,6 +224,7 @@ public class GameManager : MonoBehaviour
 
             m_uiIndex++;
             m_targetUI[m_uiIndex].HighlightElement();
+            AudioManager.Instance.PlayMenuFlow();
         }            
     }
 
@@ -208,44 +234,44 @@ public class GameManager : MonoBehaviour
             m_targetUI[m_uiIndex].OnConfirm();
     }
 
-    private void ExitButton()
-    {
-        if (m_currentState == GameState.GameFlow)
-        {
-            gameFlow.OnPauseGame();
-        }
-        else
-        {
-            if (gameFlow.GetGameStarted)
-                SwitchState(GameState.GameFlow);
-        }
-    }
-
     #endregion
 
     #region UI Actions
 
     public void StartGame()
     {
+        if (gameFlow.GetGameStarted)
+        {
+            // Restar the game
+            gameFlow.OnEndGame(true);
+        }
+
         SwitchState(GameState.GameFlow);
+        AudioManager.Instance.PlayMenuButtonPressed();
+        
     }
 
     public void ContinueGame()
     {
         SwitchState(GameState.GameFlow);
+        AudioManager.Instance.PlayMenuButtonPressed();
     }
 
     public void PauseGame()
     {
-        SwitchState(GameState.Menu);
+        SwitchState(GameState.Menu); 
+        AudioManager.Instance.PlayMenuButtonPressed();
     }
 
     public void ExitGame()
     {
+        AudioManager.Instance.PlayMenuButtonPressed();
         Application.Quit();
     }
 
     #endregion
+
+    #region Input (obrigatory)
 
     private void OnEnable()
     {
@@ -256,4 +282,6 @@ public class GameManager : MonoBehaviour
     {
         m_controller.Disable();
     }
+
+    #endregion
 }

@@ -62,6 +62,8 @@ public class GameFlow : MonoBehaviour
 
     #endregion
 
+    #region UNITY
+
     // Start is called before the first frame update
     void Awake()
     {
@@ -107,16 +109,27 @@ public class GameFlow : MonoBehaviour
         }       
     }
 
+    #endregion
+
     #region GameFlow
 
     public void OnStartGame()
     {
-        SetupFirstTetriminoQueue();
-        UpdateTetriminoQueue();
-        m_isOn = true;
-        m_gameStarted = true;
+        if (!m_gameStarted)
+        {
+            SetupFirstTetriminoQueue();
+            UpdateTetriminoQueue();
+            m_isOn = true;
+            m_gameStarted = true;
 
-        scoreManager.ResetScore();
+            scoreManager.ResetScore();
+        }
+        else
+        {
+            OnEndGame(true);
+            OnStartGame();
+        }
+        
     }    
 
     public void OnTetriminoDone()
@@ -134,6 +147,14 @@ public class GameFlow : MonoBehaviour
         }        
     }
 
+    private void OnGameOver()
+    {
+        m_isOn = false;
+        GameManager.Instance.SwitchState(GameState.GameOver);
+
+        AudioManager.Instance.PlayGameOver();
+    }
+
     public void OnCheckPlayfieldLines()
     {
         int lineToDelete = playfield.OnCheckLines();
@@ -149,13 +170,17 @@ public class GameFlow : MonoBehaviour
         }
     }
 
+    #endregion
+
+    #region Tetrimino Queue
+
     private void SetupFirstTetriminoQueue()
     {
         // First, setup Next Tetrimino
         m_nextTetrimino = OnChooseTetriminoToSpawn(-1);
 
         // Second, setup Queue Line until the last position
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         {
             OnChooseTetriminoToSpawn(i);
         }
@@ -164,7 +189,8 @@ public class GameFlow : MonoBehaviour
     private void UpdateTetriminoQueue()
     {
         // First, move next Tetrimino to Playfield
-        OnMoveNextTetriminoToPlayfield();
+        if (!OnMoveNextTetriminoToPlayfield())
+            return;
 
         // Second, move first tetrimino in queue to Next Tetrimino position
         OnUpdateNextTetrimino();
@@ -200,7 +226,7 @@ public class GameFlow : MonoBehaviour
                 m_blocksInQueue.Add(newTetrimino);
                 newTetrimino.Initialize(queuePoints[queuePosition].position);
                 newTetrimino.OnScalePiece(queueScale);
-            }            
+            }
 
             return newTetrimino;
         }
@@ -208,7 +234,7 @@ public class GameFlow : MonoBehaviour
         return null;
     }
 
-    private void OnMoveNextTetriminoToPlayfield()
+    private bool OnMoveNextTetriminoToPlayfield()
     {
         m_nextTetrimino.transform.SetParent(tetriminosHolder);
 
@@ -219,12 +245,17 @@ public class GameFlow : MonoBehaviour
             m_currentTetrimino.OnUpdatePivotPosition();
             m_currentTetrimino.OnUpdatePlayfield();
             SetupGhost();
+
+            return true;
         }
         else
         {
             // Can't Spawn -> Game Over
             m_currentTetrimino = null;
+            m_canSpawn = false;
             OnGameOver();
+
+            return false;
         }
     }
 
@@ -243,12 +274,6 @@ public class GameFlow : MonoBehaviour
         {
             m_blocksInQueue[i].OnMovePiece(queuePoints[i].position, true);
         }
-    } 
-
-    private void OnGameOver()
-    {
-        m_isOn = false;
-        GameManager.Instance.SwitchState(GameState.GameOver);
     }
 
     #endregion
@@ -314,8 +339,9 @@ public class GameFlow : MonoBehaviour
     {
         if (m_isOn && GameManager.Instance.GetCurrentState == GameState.GameFlow)
         {
-            GameManager.Instance.SwitchState(GameState.Menu);
             m_isOn = false;
+            GameManager.Instance.SwitchState(GameState.Menu);
+            AudioManager.Instance.PlayMenuButtonPressed();
         }       
     }
 
@@ -323,11 +349,13 @@ public class GameFlow : MonoBehaviour
 
     #region End Game
 
-    public void OnEndGame()
+    public void OnEndGame(bool keepScene = false)
     {
         m_gameStarted = false;
         m_isOn = false;
-        GameManager.Instance.SwitchState(GameState.Menu);
+
+        if (!keepScene)
+            GameManager.Instance.SwitchState(GameState.Menu);
 
         ResetVariables();
     }

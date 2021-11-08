@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class Playfield : MonoBehaviour
 {
+    #region Inspector
+
     [SerializeField] private int gridXSize = 10;
     [SerializeField] private int gridYSize = 40;
     [SerializeField] private Transform spawnPoint;
@@ -11,26 +13,28 @@ public class Playfield : MonoBehaviour
     [Space(20)]
     [SerializeField] private Vector3 gridGizmosModifier;
 
+    #endregion
+
+    #region Internal
+
     private Dictionary<Vector2, TetriminoBlock> m_gridLayout = new Dictionary<Vector2, TetriminoBlock>(); // True => Has Block | False => Is Empty
 
+    #endregion
+
+    #region Sets & Gets
+
     public Transform SpawnPoint { get => spawnPoint; }
+
+    #endregion
+
+    #region UNITY
 
     private void Awake()
     {
         SetupGridLayout();
     }
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    #endregion
 
     #region Grid Handler
 
@@ -150,6 +154,7 @@ public class Playfield : MonoBehaviour
         }
 
         MoveDownTetriminosDone(y + 1);
+        AudioManager.Instance.PlayLineCleared();
     }
 
     private void MoveDownTetriminosDone(int startY)
@@ -225,6 +230,8 @@ public class Playfield : MonoBehaviour
 
     #endregion
 
+    #region Gizmos 
+
     private void OnDrawGizmos()
     {
         foreach(Vector2 point in m_gridLayout.Keys)
@@ -241,4 +248,6 @@ public class Playfield : MonoBehaviour
             }
         }
     }
+
+    #endregion
 }

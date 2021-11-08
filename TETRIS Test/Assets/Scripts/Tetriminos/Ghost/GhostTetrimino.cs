@@ -4,30 +4,31 @@ using UnityEngine;
 
 public class GhostTetrimino : MonoBehaviour
 {
+    #region Inspector
+
     [SerializeField] private List<GhostBlock> ghostBlocks;
     [SerializeField] private Vector3 ghostPosModifier;
 
+    #endregion
+
+    #region Internal
+
     private Tetrimino m_targetTetrimino = null;
     private List<TetriminoBlock> m_targetBlocks = new List<TetriminoBlock>();
-    
 
-    // Start is called before the first frame update
-    void Start()
-    {
-        
-    }
+    #endregion
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    #region Setup
 
     public void SetupGhostTarget(Tetrimino target, List<TetriminoBlock> blocks)
     {
         m_targetTetrimino = target;
         m_targetBlocks = blocks;
     }
+
+    #endregion Setup
+
+    #region Movement
 
     public void UpdateGhost()
     {
@@ -64,7 +65,7 @@ public class GhostTetrimino : MonoBehaviour
 
         foreach (TetriminoBlock block in ghostBlocks)
         {
-            if (!block.TryMove(direction, m_targetBlocks))
+            if (!block.TryMove(direction, m_targetBlocks, false, false))
             {
                 success = false;
                 break;
@@ -73,6 +74,10 @@ public class GhostTetrimino : MonoBehaviour
 
         return success;
     }
+
+    #endregion
+
+    #region Show and Hide
 
     public void ShowGhost()
     {
@@ -89,4 +94,6 @@ public class GhostTetrimino : MonoBehaviour
             block.Hide();
         }
     }
+
+    #endregion
 }

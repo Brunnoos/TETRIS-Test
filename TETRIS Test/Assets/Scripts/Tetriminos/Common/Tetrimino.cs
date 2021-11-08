@@ -210,7 +210,8 @@ public class Tetrimino : MonoBehaviour
             {
                 // Reached Bottom
                 m_isDone = true;
-                GameFlow.Instance.OnTetriminoDone();
+                AudioManager.Instance.PlayTetriminoDone();
+                GameFlow.Instance.OnTetriminoDone();               
             }
         }
     }
@@ -228,7 +229,6 @@ public class Tetrimino : MonoBehaviour
             if (!block.TryRotate(direction, m_allBlocks))
             {
                 success = false;
-                break;
             }            
         }
 
@@ -241,10 +241,9 @@ public class Tetrimino : MonoBehaviour
 
         foreach (TetriminoBlock block in m_allBlocks)
         {
-            if (!block.TryMove(direction, m_allBlocks))
+            if (!block.TryMove(direction, m_allBlocks, false, false))
             {
                 success = false;
-                break;
             }
         }
 
@@ -264,7 +263,7 @@ public class Tetrimino : MonoBehaviour
 
             foreach (TetriminoBlock block in m_allBlocks)
             {
-                if (!block.TryMove(direction, m_allBlocks, true))
+                if (!block.TryMove(direction, m_allBlocks, true, true))
                 {
                     success = false;
                     break;
@@ -324,7 +323,7 @@ public class Tetrimino : MonoBehaviour
 
     #endregion
 
-    #region
+    #region Block Deleted
 
     public void OnBlockDeleted(TetriminoBlock block)
     {

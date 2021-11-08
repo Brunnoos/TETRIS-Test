@@ -173,9 +173,9 @@ public class TetriminoBlock : MonoBehaviour
         return false;
     }
 
-    public bool TryMove(Vector2 direction, List<TetriminoBlock> ignoredBlocks, bool keepTemp = false)
+    public bool TryMove(Vector2 direction, List<TetriminoBlock> ignoredBlocks, bool useTemp, bool keepTemp)
     {
-        Vector2 tempGridPosition = OnTestMove(direction);
+        Vector2 tempGridPosition = OnTestMove(direction, useTemp);
 
         // This prevents a Move Test from erasing previous data,
         // useful when trying to move for a desired rotation (keeps the rotation position for all tests)
@@ -198,9 +198,15 @@ public class TetriminoBlock : MonoBehaviour
 
     #endregion
 
+    #region Gizmos
+
+    #if UNITY_EDITOR
     private void OnDrawGizmos()
     {
         Handles.color = Color.magenta;
         Handles.Label(transform.position, m_gridPosition.ToString());
     }
+    #endif
+
+    #endregion
 }
